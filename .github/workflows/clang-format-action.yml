@@ -12,7 +12,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  apply_clang_formatter:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -20,7 +20,19 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.WORKFLOW_TOKEN }}
 
       # Runs a single command using the runners shell
       - name: install clang-format
         run: sudo apt install clang-format
+
+      - name: refactor by clang-format
+        run: clang-format -i -style=llvm main.cpp
+        
+      - name: push
+        run:  |
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git diff --quiet && git diff --staged --quiet || (git add . && git commit -m "Automated fixes by GitHub Actions" && git pull --rebase && git push origin HEAD:${{ github.head_ref }})
