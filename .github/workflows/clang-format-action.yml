@@ -33,11 +33,6 @@ jobs:
         
       - name: push
         run:  |
-          git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          if (git diff --shortstat | grep '[0-9]'); then \
-            git add .; \
-            git commit -m "refactor: apply clang-formatter automatically"; \
-            git push origin HEAD:${GITHUB_REF}; \
-          fi
+          git diff --quiet && git diff --staged --quiet || (git add . && git commit -m "Automated fixes by GitHub Actions" && git pull --rebase && git push origin HEAD:${{ github.head_ref }})
